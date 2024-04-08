@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://unpkg.com/tabulator-tables@6.0.1/dist/css/tabulator.min.css" rel="stylesheet">
+ <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.0.1/dist/js/tabulator.min.js"></script>
+
+<!-- Add this script tag in your HTML file -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.0.2/luxon.min.js"></script>
+
+ 
+<style>
+  :root {
+    --main-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --background-color: #f1f1f1;
+    --text-color: #333;
+    --blue-color: #5499C7;
+    --light-grey-color: #777;
+    --light-grey-bg-color: #E0E0E0;
+    --dark-bg-color: #ccc;
+    --dark-border-color: #555;
+    --dark-text-color: #fff;
+    --dark-bg: #333;
+    --dark-tab-icon-bg: #444;
+   
+  }
+
+  body {
+    font-family: var(--main-font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+
+  h2 {
+    margin: 0;
+  }
+
+  /* Sticky Site header */
+#title {
+  position: sticky;
+  top: 0;
+  background-color: var(--accent-color);
+  z-index: 999;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--dark-border-color); /* You need to specify a border color */
+  color: var(--contrasting-text-color);
+}
+
+#tabs {
+  position: sticky;
+  top: 0px;
+  background-color: var(--dark-bg-color);
+  z-index: 999;
+  border-bottom: 1px solid var(--dark-border-color);
+  overflow-x: auto; /* Add this line to enable horizontal scrolling */
+  white-space: nowrap; /* Prevent tabs from wrapping to the next line */
+}
+
+
+  #tabs button {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px;
+    transition: 0.3s;
+    font-size: 14px;
+    color: var(--light-grey-color);
+  }
+
+  #tabs button.active-tab,
+  #tabs button:hover {
+    color: var(--accent-color);
+  }
+
+  #tabs button.active-tab {
+    background-color: var(--light-grey-bg-color);
+  }
+
+  #tabs button .tab-text {
+    display: none;
+  }
+
+  #tabs button:hover .tab-text,
+  #tabs button.active-tab .tab-text {
+    display: inline;
+  }
+
+  .settings-page {
+    display: none;
+    padding: 20px;
+    border-top: 1px solid var(--dark-border-color);
+  }
+
+  .settings-page.show {
+    display: block;
+  }
+
+  .editable {
+    display: none;
+  }
+
+  .editable.show {
+    display: block;
+  }
+
+  /* Increase font size of table data */
+  .tabulator-table .tabulator-header {
+    font-size: 20px;
+  }
+
+  .tabulator-table .tabulator-cell {
+    font-size: 16px;
+  }
+
+  /* Dark mode styles */
+body.dark-mode {
+  background-color: var(--dark-bg);
+  color: var(--dark-text-color);
+}
+
+body.dark-mode #title {
+  background-color: var(--dark-bg);
+}
+
+body.dark-mode #tabs {
+  background-color: var(--dark-bg);
+  border-bottom: 1px solid var(--dark-border-color);
+}
+
+body.dark-mode #tabs button {
+  color: var(--light-grey-color);
+  background-color: var(--dark-bg);
+  padding: 10px;
+}
+
+body.dark-mode #tabs button.active-tab,
+body.dark-mode #tabs button:hover {
+  color: var(--dark-text-color);
+}
+
+body.dark-mode #tabs button i {
+  background-color: var(--dark-tab-icon-bg);
+}
+
+body.dark-mode #tabs button .tab-icon,
+body.dark-mode #tabs button .tab-text {
+  background-color: var(--dark-tab-icon-bg);
+}
+
+/* Adjust Tabulator table for dark mode */
+body.dark-mode .tabulator-header {
+  background-color: var(--dark-bg-color);
+  color: var(--dark-text-color);
+}
+
+body.dark-mode .tabulator-row {
+  background-color: var(--dark-bg-color);
+  color: var(--dark-text-color);
+}
+
+body.dark-mode .tabulator-row:hover {
+  background-color: var(--blue-color);
+}
+
+body.dark-mode .tabulator-row-selected {
+  background-color: var(--blue-color);
+}
+
+body.dark-mode .tabulator-col {
+  color: var(--dark-text-color);
+}
+
+
+  /* New styles for setting section */
+  #sheet-id-container {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  #sheet-id {
+    margin-right: 10px;
+  }
+
+  #envelopes-container,
+  #balances-container,
+  #transactions-container,
+  #settings-container {
+    max-width: 100%;
+    margin-left: 0px;
+    text-align: left;
+  }
+
+  .scrollable-content {
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  #content-container {
+    padding-top: 10px;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  #envelopes-container,
+  #balances-container,
+  #transactions-container,
+  #settings-container {
+    width: 100%;
+  }
+
+/* Tabulator arrow color */
+    .tabulator .tabulator-arrow {
+      color: var(--contrasting-text-color); /* Set the color to the accent color */
+    }
+
+
+
+/* Existing media query for smaller screens */
+@media only screen and (max-width: 600px) {
+  /* Hide the last column on smaller screens */
+  #envelopes-table th:last-child, 
+  #envelopes-table td:last-child {
+    display: none;
+  }
+
+  /* Increase size of icons and text in tabs for mobile */
+  #tabs button .tab-icon {
+    font-size: 30px; /* Larger icon size */
+  }
+
+  #tabs button {
+    font-size: 20px; /* Larger text size */
+    padding: 20px 24px; /* Adjust padding for bigger buttons */
+  }
+
+  /* Ensure settings tab is clickable */
+  #settings-tab {
+    pointer-events: auto;
+  }
+
+  /* Adjust active state for tabs */
+  #envelopes-tab.active-tab, 
+  #balances-tab.active-tab,
+  #transactions-tab.active-tab,
+  #settings-tab.active-tab {
+    background-color: #ccc; /* Change background color for active tab */
+    color: #333; /* Change text color for active tab */
+  }
+
+  /* Define separate styles for different Tabulator tables */
+  #transactions-table .tabulator-cell {
+    font-size: 16px; /* Set font size for transactions table */
+  }
+
+  #envelopes-container .tabulator-cell,
+  .tabulator-group tabulator-col-title{
+    font-size: 20px; /* Set font size for envelopes table */
+  }
+
+  .tabulator-row.tabulator-group.tabulator-group-level-0{
+    font-size: 1.2em; /* Set font size for the top-level group row in the Tabulator table */
+    background-color: var(--accent-color);
+    color: var(--contrasting-text-color);
+  }
+}
+
+
+#new-sheet-id {
+  width: 350px; /* Adjust the width as needed */
+}
+
+#balances-container .tabulator-header .tabulator-col-tabulator-group .tabulator-group-count {
+  color: var(--contrasting-text-color); /* Set the contrasting color */
+}
+
+.expandable-container {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.expandable-content {
+  display: none; /* Start with the content hidden */
+}
+
+.expandable-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.expand-button {
+  margin-right: 10px;
+}
+
+.expandable-buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.expandable-buttons select {
+  margin-left: 10px;
+}
+
+
+
+
+
+
+</style>
+
+ 
+</head>
+<body>
+<div id="title">
+  <h2>Ultimate Envelopes</h2>
+</div>
+<div id="tabs">
+  <button id="envelopes-tab" onclick="showTab('envelopes')">
+    <span class="tab-icon"><i class="fas fa-envelope"></i></span>
+    <span class="tab-text">Envelopes</span>
+  </button>
+  <button id="balances-tab" onclick="showTab('balances')">
+    <span class="tab-icon"><i class="fas fa-balance-scale"></i></span>
+    <span class="tab-text">Balances</span>
+  </button>
+  <button id="transactions-tab" onclick="showTab('transactions')">
+    <span class="tab-icon"><i class="fas fa-exchange-alt"></i></span>
+    <span class="tab-text">Transactions</span>
+  </button>
+  <button id="settings-tab" onclick="showTab('settings')">
+    <span class="tab-icon"><i class="fas fa-cogs"></i></span>
+    <span class="tab-text">Settings</span>
+  </button>
+  
+</div>
+
+
+
+
+
+<div id="content-container">
+  <!-- Container for Envelope content -->
+    <div id="envelopes-container">
+      <!-- Place Envelope Details within Envelopes container -->
+      <div id="expandable-container" class="expandable-container">
+  <div id="expandable-header" class="expandable-header">
+    <span id="expand-button" class="expand-button" onclick="toggleExpand()">▶ View Envelope Settings</span>
+  </div>
+  <div id="expandable-content" class="expandable-content">
+    <div class="expandable-title">
+      
+      <div id="expandable-buttons" class="expandable-buttons">
+        Select Budget Month
+      <!-- Add buttons here -->
+<select id="year-dropdown">
+  <option value="<?= year ?>"></option>
+  <!-- Populate years from 2019 to 2029 -->
+  <script>
+    var yearDropdown = document.getElementById('year-dropdown');
+    var currentYear = <?= year ?>;
+    for (var year = 2019; year <= 2029; year++) {
+      var option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      if (year === currentYear) {
+        option.selected = true;
+      }
+      yearDropdown.appendChild(option);
+    }
+  </script>
+</select>
+
+<select id="month-dropdown">
+  <option value="<?= month ?>"></option>
+  <!-- Populate months from Jan to Dec -->
+  <script>
+    var monthDropdown = document.getElementById('month-dropdown');
+    var currentMonth = <?= month ?>;
+    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    months.forEach(function(month, index) {
+      var option = document.createElement('option');
+      option.value = index + 1;
+      option.textContent = month;
+      if (index + 1 === currentMonth) {
+        option.selected = true;
+      }
+      monthDropdown.appendChild(option);
+    });
+  </script>
+</select>
+
+<button id="update-button" onclick="updateSheet()">Update</button>
+
+
+
+
+
+    </div>
+    </div>
+  </div>
+</div>
+
+<div id="envelopes-table"></div>
+    </div>
+
+  <!-- Container for Balances content -->
+  <div id="balances-container" style="display: none;">
+    <h4>Balances</h4>
+  </div>
+  <!-- Container for Transactions content -->
+  <div id="transactions-container" style="display: none;">
+    <div id="transactions-table"></div>
+  </div>
+
+  <!-- Container for Settings content -->
+  <div id="settings-container" style="display: none;">
+    <h4>Settings</h4>
+    <!-- Check if sheet ID is blank -->
+    <!-- Button for toggling dark mode -->
+    <p>Dark Mode:
+    <button id="dark-mode-toggle" onclick="toggleDarkMode()">
+      <span class="tab-icon"><i class="fas fa-moon"></i></span>
+      <span class="tab-text">Dark Mode</span>
+    </button></p>
+    <!-- Visual Color Selector -->
+      <label for="accent-color">Accent Color:</label>
+      <input type="color" id="accent-color" value="<?= accentColor ?>" onchange="setAccentColorAndContrast(this.value)"> 
+    
+<!-- Container for sheet ID edit section -->
+      <!-- Check if sheet ID is blank -->
+  <div id="sheet-id-container">
+    <p id="sheet-id">Connected Sheet: <?= sheetName ?></p>
+    <!-- Button with pencil icon for editing sheet ID -->
+    <button onclick="editSheetId()">
+      <span class="tab-icon"><i class="fas fa-pencil-alt"></i></span>
+    </button>
+  </div>
+
+<!-- Form to enter sheet ID -->
+<div id="edit-sheet-id-form" style="display: none;">
+  <form id="sheet-id-form">
+    <label for="new-sheet-id">Enter Sheet ID:</label>
+    <input type="text" id="new-sheet-id" name="new-sheet-id" value="<?= sheetId ?>">
+    <button type="button" onclick="saveSheetId()">Submit</button>
+  </form>
+</div>
+  </div>
+</div>
+
+
+
+<!-- Place this script section within the <head> tag of your HTML file -->
+
+<script>
+
+// Function to get the contrasting text color based on background color
+  function getContrastColor(hexColor) {
+    const r = parseInt(hexColor.substring(1, 3), 16);
+    const g = parseInt(hexColor.substring(3, 5), 16);
+    const b = parseInt(hexColor.substring(5, 7), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? '#000000' : '#ffffff';
+  }
+
+  // Function to set accent color and contrasting text color
+  function setAccentColorAndContrast(hexColor) {
+    // Set the accent color in your CSS
+    document.documentElement.style.setProperty("--accent-color", hexColor);
+
+    // Get the contrasting text color for the accent color
+    const contrastingTextColor = getContrastColor(hexColor);
+
+    // Set the contrasting text color in your CSS
+    document.documentElement.style.setProperty("--contrasting-text-color", contrastingTextColor);
+    google.script.run.setAccentColorToProperty(hexColor); 
+  }
+
+
+
+function initializeTransactionsTabulator(data) {
+    // Define columns for the table
+
+var columns = [
+    
+    { title: "Amount", field: "Amount", formatter: "money", formatterParams: { symbol: "$", precision: 2 },minWidth:75, headerFilter:true,responsive:0, hozAlign:"left",},
+    {title: "Envelope", field: "Category",hozAlign:"left",minWidth:75, headerFilter:"list",headerFilterParams:{valuesLookup:true, clearable:true},responsive:0,},
+    { title: "Description", field: "Description",headerFilter:true, minWidth:150,hozAlign:"left", responsive:0,},
+    
+    ];
+
+    // Initialize Tabulator with options and data
+    var table = new Tabulator("#transactions-table", {
+        columns: columns,
+        layout: "fitDataFill",
+        groupBy: "Date",
+        placeholder: "No Transactions Data Available",
+        responsiveLayout: true, // Enable responsive layout
+        pagination: "local", // Enable local pagination
+        paginationSize: 50, // Set the number of rows per page to 25
+        paginationSizeSelector: [5, 10, 25, 50], // Customize pagination size options
+        layoutcolumnsonnewdata:true,
+        persistence:{
+            sort: true, //persist column sorting
+            headerFilter: true, //persist header filters
+            columns: true, //persist columns
+        },
+        data: data // Pass the received data to initialize the table
+    });
+
+    // Fetch data from the server and load it into the table
+    google.script.run.withSuccessHandler(function(data) {
+      table.setData(data);
+    }).getTransactionsData();
+}
+
+
+function initializeENVTabulator() {
+    // Define columns for the table
+    var columns = [
+        { title: "Envelope", field: "Category", minWidth: 198
+      , responsive: 0,  },
+        { title: "Current Balance", field: "Current_Balance", hozAlign:"center", formatter: "money", formatterParams: { symbol: "$", precision: 2 }, responsive: 0, minWidth:198 },
+        { title: "Spent", field: "Current_Actuals", hozAlign:"center", width:150,minWidth:100, formatter: "money", formatterParams: { symbol: "$", precision: 2 }, responsive: 1,},
+        { title: "Budget", field: "Budget_Amount", minWidth:150, hozAlign:"center", formatter: "money", formatterParams: { symbol: "$", precision: 2 }, responsive: 1, },
+    ];
+
+        
+    var table = new Tabulator("#envelopes-table", {
+        columns: columns,
+        layout: "fitDataFill",
+        placeholder: "No Envelope Data Available",
+        groupBy: "Funding_Account",
+        groupHeader: function (value, count, data, group) {
+            var total = data.reduce(function (acc, row) {
+                return acc + parseFloat(row.Current_Balance);
+            }, 0);
+            return value + " - $ " + total.toFixed(2);
+        },
+        
+        responsiveLayout:"hide",
+        responsiveLayoutCollapseStartOpen: false,
+        selectable: true,
+        rowSelection: "single",
+    });
+
+    // Fetch data from the server and load it into the table
+    google.script.run.withSuccessHandler(function (data) {
+        var filteredData = data.filter(function (row) {
+            return row['Type'] === 'Expense' && !(row['Hide_From_Funding'] && row['Hide_From_Funding'].toLowerCase() === 'hide');
+        });
+        table.setData(filteredData);
+    }).getEnvelopesData();
+}
+
+
+  // Function to initialize Tabulator for Balances
+  function initializeBalancesTabulator() {
+    // Define columns for the table
+    var columns = [
+      { title: "Account", field: "Account", width: 200, responsive:0, hozAlign:"left" },
+      { title: "Balance", field: "Bank_Balance", hozAlign:"center", formatter: "money", responsive:0 , minWidth: 150},
+      {title: "Last Updated", field: "Last_Updated", minWidth: 50, responsive:2,hozAlign:"center" },
+    ];
+
+    // Initialize Tabulator with options
+    var table = new Tabulator("#balances-container", {
+      columns: columns,
+      layout: "fitDataFill",
+      placeholder: "No Balance Data Available",
+      groupBy: "Group",
+      responsiveLayout: true, // Enable responsive layout
+      responsiveLayoutCollapseStartOpen: false,
+groupHeader:function(value, count, data, group){
+        // Calculate total balance for the group
+        var totalBalance = data.reduce(function(acc, item) {
+            return acc + parseFloat(item.Bank_Balance);
+        }, 0);
+        
+        return "<strong>" + value + ": $ " + totalBalance.toFixed(2) + "</strong>";
+    }
+    });
+
+    // Fetch data from the server and load it into the table
+    google.script.run.withSuccessHandler(function(data) {
+      table.setData(data);
+    }).getBalancesData();
+  }
+
+function loadPage() {
+  initializeENVTabulator();
+  //showTab('envelopes');
+  initializeBalancesTabulator();
+  initializeTransactionsTabulator();
+  
+  // Set accent color and contrast on page load
+  setAccentColorAndContrast('<?= accentColor ?>');
+}
+
+
+  function showTab(tabName) {
+  var tabs = document.querySelectorAll('#tabs button');
+  tabs.forEach(function(tab) {
+      tab.classList.remove('active-tab');
+  });
+  var tab = document.getElementById(tabName + '-tab');
+  tab.classList.add('active-tab');
+
+  // Hide all content containers
+  hideAllContainers();
+
+  // Show the content container for the selected tab
+  toggleContainer(tabName + '-container');
+
+  // used to test which button is selected
+  if (tabName === 'envelopes') {
+      console.log("Envelopes tab selected");
+      //initializeENVTabulator();
+  }
+
+  // Initialize Tabulator for Balances if Balances tab is selected
+  if (tabName === 'balances') {
+      console.log("Balances tab selected");
+      //initializeBalancesTabulator();
+  }
+  
+  // Initialize Tabulator for Transactions if Transactions tab is selected
+  if (tabName === 'transactions') {
+      console.log("Transactions tab selected");
+      //initializeTransactionsTabulator();
+  }
+}
+
+  function editSheetId() {
+    var formContainer = document.getElementById('edit-sheet-id-form');
+    var button = document.getElementById('edit-sheet-id-button');
+    var isVisible = formContainer.style.display === 'block';
+    formContainer.style.display = isVisible ? 'none' : 'block';
+    button.style.display = isVisible ? 'block' : 'none';
+  }
+
+function saveSheetId() {
+  var newSheetId = document.getElementById('new-sheet-id').value;
+  google.script.run.setSheetId(newSheetId);
+  // Update the displayed sheet ID
+  var sheetIdElement = document.getElementById('sheet-id');
+  sheetIdElement.textContent = 'Connected Sheet: ' + newSheetId;
+  // Hide the form
+  var formContainer = document.getElementById('edit-sheet-id-form');
+  formContainer.style.display = 'none';
+  // Show the edit button
+  var button = document.getElementById('edit-sheet-id-button');
+  button.style.display = 'block';
+  // Reload the page
+  location.reload();
+}
+
+
+  // Function to hide all containers
+  function hideAllContainers() {
+    var containers = document.querySelectorAll('#content-container > div');
+    containers.forEach(function(container) {
+      container.style.display = 'none';
+    });
+  }
+
+  // Function to toggle container display
+  function toggleContainer(containerId) {
+    var container = document.getElementById(containerId);
+    container.style.display = (container.style.display === 'none') ? 'block' : 'none';
+  }
+
+  // Function to toggle dark mode
+  function toggleDarkMode() {
+    var body = document.body;
+    var darkModeToggleText = document.getElementById('dark-mode-toggle').querySelector('.tab-text');
+    var isDarkMode = body.classList.contains('dark-mode');
+    darkModeToggleText.textContent = isDarkMode ? "Dark Mode" : "Light Mode";
+    body.classList.toggle('dark-mode');
+    var darkModeToggleIcon = document.getElementById('dark-mode-toggle').querySelector('i');
+    darkModeToggleIcon.classList.toggle('fa-moon', !isDarkMode);
+    darkModeToggleIcon.classList.toggle('fa-sun', isDarkMode);
+    document.cookie = "mode=" + (isDarkMode ? "dark" : "light") + "; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+  }
+
+  // Function to toggle container display
+function toggleContainer(containerId) {
+  var container = document.getElementById(containerId);
+  container.style.display = (container.style.display === 'none') ? 'block' : 'none';
+}
+
+// Function to toggle expandable container
+function toggleExpand() {
+  var expandableContent = document.getElementById('expandable-content');
+  var expandButton = document.getElementById('expand-button');
+  if (expandableContent.style.display === 'block') {
+    expandableContent.style.display = 'none';
+    expandButton.textContent = '▶ View Budget Settings';
+  } else {
+    expandableContent.style.display = 'block';
+    expandButton.textContent = '▼';
+  }
+}
+
+
+function updateSheet() {
+  var year = document.getElementById('year-dropdown').value;
+  var month = document.getElementById('month-dropdown').value;
+console.log(year)
+  // Call the server-side function to update the connected Google Sheet
+  google.script.run.withSuccessHandler(loadPage).updateSheetValues(year, month);
+}
+
+
+
+
+  // Check if dark mode is enabled on page load
+  window.onload = function() {
+    var modeCookie = document.cookie.match(/(^|;) ?mode=([^;]*)(;|$)/);
+    var isDarkMode = modeCookie ? modeCookie[2] === 'dark' : false;
+    document.body.classList.toggle('dark-mode', isDarkMode);
+    var darkModeToggleIcon = document.getElementById('dark-mode-toggle').querySelector('i');
+    darkModeToggleIcon.classList.toggle('fa-moon', !isDarkMode);
+    darkModeToggleIcon.classList.toggle('fa-sun', isDarkMode);
+    loadPage();
+    
+  };
+
+
+
+</script>
+</body>
+</html>
+
+
