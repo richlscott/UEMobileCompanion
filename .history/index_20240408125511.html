@@ -394,23 +394,12 @@ body.dark-mode .tabulator-col {
 
 <button id="update-button" onclick="updateSheet()">Update</button>
 
-<script>
-  function updateSheet() {
-  var year = document.getElementById('year-dropdown').value;
-  var month = document.getElementById('month-dropdown').value;
-console.log(year)
-  // Call the server-side function to update the connected Google Sheet
-  google.script.run.withSuccessHandler(loadPage).updateSheetValues(year, month);
-}
-  
-  </script>
-
 
 
 
 
     </div>
-
+    
     </div>
   </div>
 </div>
@@ -717,7 +706,13 @@ function toggleExpand() {
 }
 
 
-
+function updateSheet() {
+  var year = document.getElementById('year-dropdown').value;
+  var month = document.getElementById('month-dropdown').value;
+console.log(year)
+  // Call the server-side function to update the connected Google Sheet
+  google.script.run.withSuccessHandler(loadPage).updateSheetValues(year, month);
+}
 
 
 
